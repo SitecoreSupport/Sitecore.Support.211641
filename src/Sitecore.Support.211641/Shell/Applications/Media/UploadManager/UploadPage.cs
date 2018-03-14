@@ -1,6 +1,14 @@
-﻿using System;
+﻿using Sitecore.Configuration;
+using Sitecore.Data;
+using Sitecore.Diagnostics;
+using Sitecore.Globalization;
+using Sitecore.Shell.Web;
+using Sitecore.Text;
+using Sitecore.Web;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Web;
 
 namespace Sitecore.Support.Shell.Applications.Media.UploadManager
@@ -10,7 +18,7 @@ namespace Sitecore.Support.Shell.Applications.Media.UploadManager
     protected override void OnLoad(EventArgs e)
     {
       base.OnLoad(e);
-      if (this.requestLengthExceeded)
+      if ((bool)this.GetType().GetField("requestLengthExceeded", BindingFlags.NonPublic).GetValue(this))
       {
         string arg = Translate.Text("The file is too big to be uploaded.\n\nThe maximum size of a file that can be uploaded is {0}.", new object[]
         {
@@ -29,20 +37,20 @@ namespace Sitecore.Support.Shell.Applications.Media.UploadManager
         }));
         try
         {
-          this.UploadFiles(listString);
+          this.GetType().GetMethod("UploadFiles", BindingFlags.NonPublic).Invoke(this, new object[] { listString });
         }
-        catch
+        catch (Exception ex)
         {
           this.ErrorText.Value = Translate.Text("One or more files could not be uploaded.\n\nSee the Log file for more details.");
         }
-        string text = ID.NewID.ToShortID().ToString();
+        string text = Sitecore.Data.ID.NewID.ToShortID().ToString();
         this.UploadedItemsHandle.Value = text;
         WebUtil.SetSessionValue(text, listString.ToString());
         this.UploadedItems.Value = listString.ToString();
       }
       else
       {
-        ItemUri itemUri = ItemUri.ParseQueryString(Context.ContentDatabase);
+        ItemUri itemUri = ItemUri.ParseQueryString(Sitecore.Context.ContentDatabase);
         Assert.IsNotNull(itemUri, typeof(ItemUri));
         this.Uri.Value = itemUri.ToString();
         this.Versioned.Checked = Settings.Media.UploadAsVersionableByDefault;
@@ -51,7 +59,7 @@ namespace Sitecore.Support.Shell.Applications.Media.UploadManager
       if (Settings.Media.UploadAsFiles)
       {
         this.AsFiles.Checked = true;
-      }
+      } 
       if (Settings.Upload.SimpleUploadOverwriting)
       {
         this.Overwrite.Checked = true;
