@@ -132,7 +132,7 @@ namespace Sitecore.Support.Shell.Applications.Media.UploadManager
           }
           else
           {
-            uploadArgs.ErrorText = "An error occured while uploading:\n\n" + ex.InnerException;
+            uploadArgs.ErrorText = "An error occured while uploading:\n\n" + ex.InnerException.Message;
           }
         }
         if (!string.IsNullOrEmpty(uploadArgs.ErrorText))
